@@ -6,7 +6,9 @@ def get_prompt(text):
     scenario = text
     if not text:
         return None
-    return f'an anime of a red bus and {scenario}, the style of Studio Ghibli'
+    return f'a whimsical child book illustration of the red bus and {scenario}, the style charming, childlike, carefree, dreamy, fun and colorful'
+    # return f'a children book illustration of a red bus and {scenario}, the style of Linh Pham'
+    # return f'a children book illustration of a red bus and {scenario}, the style of Studio Ghibli'
 
 
 @st.cache(allow_output_mutation=True)
@@ -44,7 +46,7 @@ st.text('一个关于开巴士去旅行的故事🚌')
 st.header('第一步：一句话描述你的故事')
 st.text_input('We are driving a red bus to ...',
               key='prompt_raw',
-              placeholder='a mountain / a flower field / the lake / the desert')
+              placeholder='a mountain / a flower field / a bridge over the river / take a picnic')
 
 # extract the key entity from st.session_state.prompt_raw
 prompt = get_prompt(st.session_state.prompt_raw)
