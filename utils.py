@@ -1,9 +1,9 @@
+import os
 from enum import Enum
 
 import streamlit as st
 from docarray import Document, DocumentArray
 from datetime import datetime
-
 
 
 class Status(Enum):
@@ -50,12 +50,12 @@ def get_from_dalle():
     col_list = st.columns(3)
     counter = 0
     for idx, d in enumerate(doc.matches):
-        with col_list[idx%3]:
-            st.image(d.uri, caption=f'画稿 {idx+1}')
+        with col_list[idx % 3]:
+            st.image(d.uri, caption=f'画稿 {idx + 1}')
         counter += 1
     st.selectbox(
         "你满意的初稿❤️",
-        [''] + list([f'画稿 {i+1}' for i in range(counter)]),
+        [''] + list([f'画稿 {i + 1}' for i in range(counter)]),
         key='fav_1st_id_str',
         index=0,
         on_change=get_from_diffusion)
@@ -69,9 +69,9 @@ def get_from_diffusion():
         fav.embedding = st.session_state.doc.embedding
         with st.spinner('正在努力绘制精修图片🎨...'):
             doc = fav.post(
-                 f'{server_url}',
-                 parameters={'skip_rate': 0.6, 'num_images': 6},
-                 target_executor='diffusion')
+                f'{server_url}',
+                parameters={'skip_rate': 0.6, 'num_images': 6},
+                target_executor='diffusion')
             st.session_state.doc.matches[fav_id].matches = doc.matches
         st.session_state.status = Status.DIFFUSION
     if st.session_state.status.value != Status.DIFFUSION.value:
@@ -141,5 +141,13 @@ server_url = 'grpcs://dalle-flow.dev.jina.ai'
 
 def plot_tile():
     st.title('让我们一起给孩子讲故事')
-    # st.header('让我们一起给孩子讲故事')
     st.subheader('用一句话来完成一个关于开巴士🚌去旅行的故事接龙')
+
+
+def load_data():
+    if 'fav_docs' in st.session_state.keys():
+        print('fav_docs is there, skip loading')
+        return
+    if os.path.exists('data.bin'):
+        st.session_state['fav_docs'] = DocumentArray.load_binary('data.bin')
+        print(f'st.session_state.fav_docs: {len(st.session_state.fav_docs)}')
