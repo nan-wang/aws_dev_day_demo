@@ -17,8 +17,10 @@ def get_prompt():
     if st.session_state.status.value != Status.PROMPT.value:
         return
     plot_tile()
+    plot_sidebar()
     st.header('第一步：一句话接龙故事')
-    st.text('上一页的故事：We are driving a red bus to <story from the last teller>')
+    if st.session_state.fav_docs:
+        st.text(f'上一页的故事：{st.session_state.fav_docs[-1].tags["description"]}')
     st.subheader('你的故事：We are driving a red bus to ...')
     st.text_input('',
                   key='prompt_raw',
@@ -125,14 +127,15 @@ def save_fav():
     dfav.text = st.session_state.doc.tags["description"]
     dfav.tags['author'] = st.session_state.author if st.session_state.author else '无名'
     dfav.tags['ctime'] = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
+    dfav.tags['description'] = \
+        f'{st.session_state.doc.tags["description"]} By {dfav.tags["author"]}, {dfav.tags["ctime"]}'
     if 'fav_docs' not in st.session_state.keys():
         st.session_state['fav_docs'] = DocumentArray.empty()
     st.session_state.fav_docs.append(dfav)
     st.info('发布成功🎉')
-    st.image(dfav.uri,
-             caption=f'{st.session_state.doc.tags["description"]} By {dfav.tags["author"]},' +
-                     f'{dfav.tags["ctime"]}')
+    st.image(dfav.uri, caption=dfav.tags['description'])
     st.session_state.fav_docs.save_binary('data.bin')
+    plot_sidebar()
     st.button('再来一次', on_click=reset_status)
 
 
@@ -141,7 +144,7 @@ server_url = 'grpcs://dalle-flow.dev.jina.ai'
 
 def plot_tile():
     st.title('让我们一起给孩子讲故事')
-    st.subheader('用一句话来完成一个关于开巴士🚌去旅行的故事接龙')
+    st.subheader('一起来接龙完成一个开巴士🚌去旅行的故事')
 
 
 def load_data():
@@ -151,3 +154,11 @@ def load_data():
     if os.path.exists('data.bin'):
         st.session_state['fav_docs'] = DocumentArray.load_binary('data.bin')
         print(f'st.session_state.fav_docs: {len(st.session_state.fav_docs)}')
+
+
+def plot_sidebar():
+    da = st.session_state.get('fav_docs', DocumentArray.empty())
+    with st.sidebar:
+        for d in reversed(da):
+            st.image(d.uri,
+                     caption=f'{d.tags["description"]}')
