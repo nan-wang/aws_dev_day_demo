@@ -8,9 +8,10 @@ from datetime import datetime
 
 class Status(Enum):
     PROMPT = 1
-    DALLE = 2
-    DIFFUSION = 3
-    UPSCALE = 4
+    OPENAI = 2
+    DALLE = 3
+    DIFFUSION = 4
+    UPSCALE = 5
 
 
 def get_prompt():
@@ -29,16 +30,18 @@ def get_prompt():
 
 
 def translate_prompt():
-    desc_str = st.session_state.description_raw
-    if desc_str:
+    if st.session_state.description_raw:
+        st.session_state.status = Status.OPENAI
         # f'a children book illustration of a red bus and {scenario}, the style of Linh Pham'
         # f'a children book illustration of a red bus and {scenario}, the style of Studio Ghibli'
         import openai
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        openai.api_key = os.getenv('OPENAI_API_KEY', None)
+        if openai.api_key is None:
+            st.error('Translation API failed')
         try:
             response = openai.Completion.create(
                 model="text-davinci-002",
-                prompt=f"Translate this into English:\n{desc_str}",
+                prompt=f"Translate this into English:\n{st.session_state.description_raw}",
                 temperature=0.3,
                 max_tokens=100,
                 top_p=1,
@@ -165,7 +168,7 @@ def reset_status():
     st.session_state.status = Status.PROMPT
     with st.spinner('重新准备画布'):
         try:
-            st.session_state.fav_docs.push(name='aws_china_dev_day_demo_202208_test')
+            st.session_state.fav_docs.push(name='aws_china_dev_day_demo_202208_cn')
         except Exception:
             st.error('同步数据失败🚧')
 
