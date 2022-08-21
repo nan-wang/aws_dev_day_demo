@@ -114,6 +114,11 @@ def get_from_upscale():
 
 def reset_status():
     st.session_state.status = Status.PROMPT
+    with st.spinner('重新准备画布'):
+        try:
+            st.session_state.fav_docs.push(name='aws_china_dev_day_demo_202208_test')
+        except Exception:
+            st.error('同步数据失败🚧')
 
 
 def get_name():
@@ -132,9 +137,8 @@ def save_fav():
     if 'fav_docs' not in st.session_state.keys():
         st.session_state['fav_docs'] = DocumentArray.empty()
     st.session_state.fav_docs.append(dfav)
-    st.info('发布成功🎉')
     st.image(dfav.uri, caption=dfav.tags['description'])
-    st.session_state.fav_docs.save_binary('data.bin')
+    st.info('发布成功🎉')
     plot_sidebar()
     st.button('再来一次', on_click=reset_status)
 
@@ -147,13 +151,18 @@ def plot_tile():
     st.subheader('一起来接龙完成一个开巴士🚌去旅行的故事')
 
 
+@st.cache(allow_output_mutation=True)
 def load_data():
     if 'fav_docs' in st.session_state.keys():
         print('fav_docs is there, skip loading')
-        return
-    if os.path.exists('data.bin'):
-        st.session_state['fav_docs'] = DocumentArray.load_binary('data.bin')
-        print(f'st.session_state.fav_docs: {len(st.session_state.fav_docs)}')
+        return None
+    if os.environ.get('JINA_AUTH_TOKEN', None) is not None:
+        try:
+            da = DocumentArray.pull(name='aws_china_dev_day_demo_202208_test')
+            return da
+        except Exception:
+            print('加载数据失败')
+    return None
 
 
 def plot_sidebar():
