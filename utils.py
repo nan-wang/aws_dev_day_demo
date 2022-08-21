@@ -19,13 +19,12 @@ def get_prompt():
         return
     plot_tile()
     plot_sidebar()
-    st.header('第一步：一句话接龙故事')
     if 'fav_docs' in st.session_state:
-        st.text(f'上一页的故事：{st.session_state.fav_docs[-1].tags["description"]}')
-    st.subheader('你的故事：我们开着一辆红色的巴士去...')
+        st.text(f'前情提要：{st.session_state.fav_docs[-1].tags["description"]}')
+    st.subheader('故事接龙：我们开着一辆红色的巴士去...')
     st.text_input('',
                   key='description_raw',
-                  placeholder='故宫 / 巴黎 / 麦田 / 野餐 / 看夕阳',
+                  placeholder='举个例子：故宫 / 巴黎 / 麦田 / 野餐 / 看夕阳',
                   max_chars=32,
                   on_change=translate_prompt)
 
@@ -100,7 +99,7 @@ def get_from_dalle():
     if st.session_state.status.value != Status.DALLE.value:
         return
     plot_tile()
-    st.header('第二步：选择你满意的初稿❤️')
+    st.header('选择你满意的初稿❤️')
     st.subheader(f'{st.session_state.doc.tags["description"]}')
     col_list = st.columns(3)
     counter = 0
@@ -132,7 +131,7 @@ def get_from_diffusion():
     if st.session_state.status.value != Status.DIFFUSION.value:
         return
     plot_tile()
-    st.header('第三步：选择你满意的精修图片❤️')
+    st.header('选择你满意的精修图片❤️')
     st.subheader(f'{st.session_state.doc.tags["description"]}')
     col_list = st.columns(3)
     counter = 0
@@ -201,8 +200,8 @@ server_url = 'grpcs://dalle-flow.dev.jina.ai'
 
 
 def plot_tile():
-    st.title('让我们一起给孩子讲故事')
-    st.subheader('接龙完成一个开巴士🚌去旅行的故事')
+    # st.title('给孩子讲故事')
+    st.title('一起接龙讲述一个开巴士🚌去旅行的儿童故事')
 
 
 @st.cache(allow_output_mutation=True)
