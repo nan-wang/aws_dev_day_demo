@@ -132,12 +132,13 @@ def save_fav():
     dfav.text = st.session_state.doc.tags["description"]
     dfav.tags['author'] = st.session_state.author if st.session_state.author else '无名'
     dfav.tags['ctime'] = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
-    dfav.tags['description'] = \
-        f'{st.session_state.doc.tags["description"]} By {dfav.tags["author"]}, {dfav.tags["ctime"]}'
+    dfav.tags['caption'] = \
+        f'{st.session_state.doc.tags["description"]}\nBy {dfav.tags["author"]}, {dfav.tags["ctime"]}'
+    dfav.tags['description'] = st.session_state.doc.tags["description"]
     if 'fav_docs' not in st.session_state.keys():
         st.session_state['fav_docs'] = DocumentArray.empty()
     st.session_state.fav_docs.append(dfav)
-    st.image(dfav.uri, caption=dfav.tags['description'])
+    st.image(dfav.uri, caption=dfav.tags['caption'])
     st.info('发布成功🎉')
     plot_sidebar()
     st.button('再来一次', on_click=reset_status)
@@ -158,7 +159,7 @@ def load_data():
         return None
     if os.environ.get('JINA_AUTH_TOKEN', None) is not None:
         try:
-            da = DocumentArray.pull(name='aws_china_dev_day_demo_202208_test')
+            da = DocumentArray.pull(name='aws_china_dev_day_demo_202208_cn')
             return da
         except Exception:
             print('加载数据失败')
@@ -170,4 +171,4 @@ def plot_sidebar():
     with st.sidebar:
         for d in reversed(da):
             st.image(d.uri,
-                     caption=f'{d.tags["description"]}')
+                     caption=f'{d.tags["caption"]}')
