@@ -19,21 +19,69 @@ def get_prompt():
     plot_tile()
     plot_sidebar()
     st.header('第一步：一句话接龙故事')
-    if st.session_state.fav_docs:
+    if 'fav_docs' in st.session_state:
         st.text(f'上一页的故事：{st.session_state.fav_docs[-1].tags["description"]}')
-    st.subheader('你的故事：We are driving a red bus to ...')
+    st.subheader('你的故事：我们开着一辆红色的巴士去...')
     st.text_input('',
-                  key='prompt_raw',
-                  placeholder='a mountain / a flower field / Paris / take a picnic',
-                  on_change=get_from_dalle)
+                  key='description_raw',
+                  placeholder='故宫 / 巴黎 / 一片花海 / 野餐 / 看斑马',
+                  on_change=translate_prompt)
 
 
-def get_from_dalle():
-    desc_str = st.session_state.prompt_raw
+def translate_prompt():
+    desc_str = st.session_state.description_raw
     if desc_str:
         # f'a children book illustration of a red bus and {scenario}, the style of Linh Pham'
         # f'a children book illustration of a red bus and {scenario}, the style of Studio Ghibli'
-        prompt = f'a whimsical child book illustration of the red bus and {desc_str}, the style charming, childlike, carefree, dreamy, fun and colorful'
+        import openai
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        try:
+            response = openai.Completion.create(
+                model="text-davinci-002",
+                prompt=f"Translate this into English:\n{desc_str}",
+                temperature=0.3,
+                max_tokens=100,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+            )
+            text_en = response['choices'][0]['text'].strip()
+            print(f'text_en: {text_en}')
+            response = openai.Completion.create(
+                model="text-davinci-002",
+                prompt=f"Extract the entity from this:\n{text_en}.",
+                temperature=0.01,
+                max_tokens=32,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+            )
+            st.session_state['prompt_raw'] = text_en
+            entity_list_str = response['choices'][0]['text'].strip()
+            print(f'entity_list_str: {entity_list_str}')
+            if entity_list_str:
+                entity_list = []
+                for e in entity_list_str.split(','):
+                    entity = e.strip()
+                    if entity:
+                        _entity = entity.lower()
+                        if not _entity.startswith('the ') and not _entity.startswith('a ') and not _entity.startswith('an '):
+                            entity = 'the ' + _entity
+                        entity_list.append(entity)
+                if entity_list:
+                    st.session_state['prompt_raw'] = ' and '.join(entity_list)
+            print(f'st.session_state["prompt_raw"]: {st.session_state["prompt_raw"]}')
+            get_from_dalle()
+        except Exception as e:
+            print(f'translation failed. {e}')
+            st.button('再来一次', on_click=reset_status)
+
+
+def get_from_dalle():
+    if st.session_state.prompt_raw:
+        # f'a children book illustration of a red bus and {scenario}, the style of Linh Pham'
+        # f'a children book illustration of a red bus and {scenario}, the style of Studio Ghibli'
+        prompt = f'a whimsical child book illustration of the red bus and {st.session_state.prompt_raw}, the style charming, childlike, carefree, dreamy, fun and colorful'
         with st.spinner('正在努力构思✍️...'):
             try:
                 doc = Document(text=prompt).post(server_url, parameters={'num_images': 3})
@@ -42,7 +90,8 @@ def get_from_dalle():
                 reset_status()
                 return
         st.session_state.status = Status.DALLE
-        doc.tags['description'] = f'We are driving a red bus to {st.session_state.prompt_raw}'
+        doc.tags['description'] = f'我们开着一辆红色大巴士去{st.session_state.description_raw}'
+        doc.tags['prompt'] = prompt
         st.session_state['doc'] = doc
     if st.session_state.status.value != Status.DALLE.value:
         return
