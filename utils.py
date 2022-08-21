@@ -25,7 +25,8 @@ def get_prompt():
     st.subheader('你的故事：我们开着一辆红色的巴士去...')
     st.text_input('',
                   key='description_raw',
-                  placeholder='故宫 / 巴黎 / 一片花海 / 野餐 / 看斑马',
+                  placeholder='故宫 / 巴黎 / 麦田 / 野餐 / 看夕阳',
+                  max_chars=32,
                   on_change=translate_prompt)
 
 
@@ -174,7 +175,7 @@ def reset_status():
 
 
 def get_name():
-    st.text_input('你的昵称', key='author', on_change=save_fav)
+    st.text_input('你的昵称', key='author', on_change=save_fav, max_chars=32)
 
 
 def save_fav():
@@ -201,7 +202,7 @@ server_url = 'grpcs://dalle-flow.dev.jina.ai'
 
 def plot_tile():
     st.title('让我们一起给孩子讲故事')
-    st.subheader('一起来接龙完成一个开巴士🚌去旅行的故事')
+    st.subheader('接龙完成一个开巴士🚌去旅行的故事')
 
 
 @st.cache(allow_output_mutation=True)
