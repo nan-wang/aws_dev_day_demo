@@ -74,7 +74,7 @@ def get_from_dalle():
         prompt = f'a whimsical child book illustration in the style charming, childlike, carefree, dreamy, fun and colorful. {st.session_state.prompt_raw}'
         with st.spinner('正在努力构思✍️...'):
             try:
-                doc = Document(text=prompt).post(server_url, parameters={'num_images': 3})
+                doc = Document(text=prompt).post(server_url, parameters={'num_images': 5})
             except Exception as e:
                 st.error(f'failed to call {server_url}, {e}')
                 reset_status()
@@ -90,10 +90,11 @@ def get_from_dalle():
     st.subheader(f'{st.session_state.doc.tags["description"]}')
     col_list = st.columns(3)
     counter = 0
-    for idx, d in enumerate(doc.matches):
+    for idx, d in enumerate(doc.matches[:9]):
         with col_list[idx % 3]:
             st.image(d.uri, caption=f'画稿 {idx + 1}')
         counter += 1
+    st.button('再试一次', on_click=reset_status)
     st.selectbox(
         "你满意的初稿❤️",
         [''] + list([f'画稿 {i + 1}' for i in range(counter)]),
