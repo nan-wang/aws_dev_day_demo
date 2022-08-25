@@ -192,7 +192,6 @@ def plot_tile():
     st.title('一起接龙讲述一个开巴士🚌去旅行的儿童故事')
 
 
-@st.cache(allow_output_mutation=True)
 def load_data():
     if 'fav_docs' in st.session_state.keys():
         print('fav_docs is there, skip loading')
