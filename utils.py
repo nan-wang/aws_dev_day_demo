@@ -203,6 +203,8 @@ def load_data():
             return da
         except Exception:
             print('加载数据失败')
+    else:
+        print('JINA_AUTH_TOKEN is not set')
     return None
 
 
