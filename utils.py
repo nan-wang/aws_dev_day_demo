@@ -21,10 +21,10 @@ def get_prompt():
     plot_sidebar()
     if 'fav_docs' in st.session_state:
         st.text(f'前情提要：{st.session_state.fav_docs[-1].tags["description"]}')
-    st.subheader('故事接龙：我们开着一辆红色的巴士去...')
+    # st.subheader('故事接龙：我们开着一辆红色的巴士去...')
     st.text_input('',
                   key='description_raw',
-                  placeholder='举个例子：故宫 / 巴黎 / 麦田 / 野餐 / 看夕阳',
+                  # placeholder='举个例子：故宫 / 巴黎 / 麦田 / 野餐 / 看夕阳',
                   max_chars=32,
                   on_change=translate_prompt)
 
@@ -52,27 +52,14 @@ def translate_prompt():
             print(f'text_en: {text_en}')
             response = openai.Completion.create(
                 model="text-davinci-002",
-                prompt=f"Extract the entity from this:\n{text_en}.",
-                temperature=0.01,
-                max_tokens=32,
+                prompt=f"Write a description for a child book illustration. \n\nstory: {st.session_state.description_raw}",
+                temperature=0.7,
+                max_tokens=256,
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0
             )
             st.session_state['prompt_raw'] = text_en
-            entity_list_str = response['choices'][0]['text'].strip()
-            print(f'entity_list_str: {entity_list_str}')
-            if entity_list_str:
-                entity_list = []
-                for e in entity_list_str.split(','):
-                    entity = e.strip()
-                    if entity:
-                        _entity = entity.lower()
-                        if not _entity.startswith('the ') and not _entity.startswith('a ') and not _entity.startswith('an '):
-                            entity = 'the ' + _entity
-                        entity_list.append(entity)
-                if entity_list:
-                    st.session_state['prompt_raw'] = ' and '.join(entity_list)
             print(f'st.session_state["prompt_raw"]: {st.session_state["prompt_raw"]}')
             get_from_dalle()
         except Exception as e:
@@ -84,7 +71,7 @@ def get_from_dalle():
     if st.session_state.prompt_raw:
         # f'a children book illustration of a red bus and {scenario}, the style of Linh Pham'
         # f'a children book illustration of a red bus and {scenario}, the style of Studio Ghibli'
-        prompt = f'a whimsical child book illustration of the red bus and {st.session_state.prompt_raw}, the style charming, childlike, carefree, dreamy, fun and colorful'
+        prompt = f'a whimsical child book illustration in the style charming, childlike, carefree, dreamy, fun and colorful. {st.session_state.prompt_raw}'
         with st.spinner('正在努力构思✍️...'):
             try:
                 doc = Document(text=prompt).post(server_url, parameters={'num_images': 3})
@@ -93,7 +80,7 @@ def get_from_dalle():
                 reset_status()
                 return
         st.session_state.status = Status.DALLE
-        doc.tags['description'] = f'我们开着一辆红色大巴士去{st.session_state.description_raw}'
+        doc.tags['description'] = f'{st.session_state.description_raw}'
         doc.tags['prompt'] = prompt
         st.session_state['doc'] = doc
     if st.session_state.status.value != Status.DALLE.value:
