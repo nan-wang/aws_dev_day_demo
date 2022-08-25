@@ -74,7 +74,7 @@ def get_from_dalle():
         prompt = f'a whimsical child book illustration in the style charming, childlike, carefree, dreamy, fun and colorful. {st.session_state.prompt_raw}'
         with st.spinner('正在努力构思✍️...'):
             try:
-                doc = Document(text=prompt).post(server_url, parameters={'num_images': 5})
+                doc = Document(text=prompt).post(server_url, parameters={'num_images': 3})
             except Exception as e:
                 st.error(f'failed to call {server_url}, {e}')
                 reset_status()
